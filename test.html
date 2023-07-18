@@ -1,0 +1,350 @@
+<html>
+  <head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <style>
+      .message {
+        position: relative;
+      }
+
+      .message:after {
+        content: "";
+        top: 0;
+        position: absolute;
+        border: 0.75em solid transparent;
+        border-top-color: blue;
+        display: block;
+      }
+
+      .message.assistant:after {
+        left: -0.45em;
+        border-top-color: inherit;
+      }
+
+      .message.user:after {
+        right: -0.45em;
+        border-top-color: inherit;
+      }
+
+      .type-indicator span {
+        display: inline-block;
+        padding: 0 0.075em;
+        animation: type-indicator 1s ease-in-out infinite;
+        transform: translateY(0);
+      }
+
+      .type-indicator span:nth-child(2) {
+        animation-delay: 150ms;
+      }
+
+      .type-indicator span:nth-child(3) {
+        animation-delay: 300ms;
+      }
+
+      @keyframes type-indicator {
+        0% {
+          transform: none;
+          animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+        }
+        50% {
+          transform: translateY(-25%);
+          animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+        }
+      }
+
+      .blink {
+        animation: blink 1.25s infinite;
+      }
+
+      .keys {
+        bottom: 16;
+        position: absolute;
+      }
+
+      @keyframes blink {
+        0% {
+          opacity: 1;
+        }
+        69% {
+          opacity: 1;
+        }
+        70% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+      .messages-container {
+        height: 300vh; /* Adjust the height according to your needs */
+        overflow-y: auto;
+      }
+
+      .fa-upload,
+      .fa-microphone {
+        padding: 15px;
+        font-size: 20px;
+        background: #f8f9fa; /* Light Gray */
+        color: #000000; /* Black */
+        border-radius: 50%;
+      }
+
+      .fa-upload:hover,
+      .fa-microphone:hover {
+        background: #e9ecef; /* Slightly darker gray when hovered */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" class="">
+      <!-- Sidebar start -->
+      <div
+        class="fixed top-0 left-0 bottom-0 z-[60] w-64 border-r border-gray-200 pt-2 pb-10 overflow-y-auto scrollbar-y dark:bg-gray-800 dark:border-gray-700"
+      >
+        <div class="bg-gray-800 flex p-4">
+          <span class="text-white font-bold">BuildFast Labs</span>
+        </div>
+        <nav class="px-2 w-full flex flex-col flex-wrap">
+          <ul class="space-y-2 font-medium mr-4">
+            <li>
+              <a
+                class="relative inline-flex items-center justify-center p-0.5 mb-2 text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800"
+              >
+                <span
+                  class="flex w-full relative px-16 py-2.5 bg-white hover:cursor-pointer dark:bg-gray-900 rounded-md group-hover:bg-opacity-0"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6 text-gray-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="white"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                  <div>New Chat</div>
+                </span>
+              </a>
+            </li>
+            <li v-for="chat in chats" :key="chat.name">
+              <div
+                class="px-4 h-full rounded-md bg-gray-700 flex items-center hover:cursor-pointer text-white"
+              >
+                <svg
+                  class="w-6 h-6 text-gray-800 dark:text-white"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                  viewBox="0 0 20 18"
+                >
+                  <path
+                    d="M18 0H2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3.546l3.2 3.659a1 1 0 0 0 1.506 0L13.454 14H18a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm-8 10H5a1 1 0 0 1 0-2h5a1 1 0 1 1 0 2Zm5-4H5a1 1 0 0 1 0-2h10a1 1 0 1 1 0 2Z"
+                  />
+                </svg>
+                <div class="px-4 my-3">[[chat.name]]</div>
+              </div>
+            </li>
+          </ul>
+        </nav>
+      <div class="keys ml-4 text-white">
+          <div class="flex ml-2">
+            <div class="w-16 text-xs mt-2">Lisence key</div>
+            <button type="button" class="w-30 ml-4 text-xs text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg px-4 py-2 text-center mr-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">Unlicensed</button>
+            </div>
+          <div class="flex ml-4"> <div class="w-14 text-xs mt-1">API key</div>
+          <button type="button" class="w-30 ml-4 text-xs text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg px-3 py-2 text-center mr-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">Enter API key</button>
+          </div>
+      </div>
+      
+</div>
+      <!-- Sidebar end -->
+
+
+      
+      <div
+          class="w-full  max-w-screen-lg flex-1 m-auto pt-10 px-10 pb-44 my-4 messages-container"
+        >
+          <div class="flex ml-60 flex-col">
+            <div
+              v-for="message in messages"
+              :key="message.id"
+              class="message rounded-lg py-2 px-6 mb-4"
+              :class="message.role === 'assistant' ? 'assistant bg-blue-100 border-blue-100 self-start' : 'user bg-green-200 border-green-200 self-end'"
+            >
+              <span v-if="message.type === 'text'">[[message.body ]]</span>
+              <img
+                v-if="message.type === 'image'"
+                :src="message.url"
+                alt="Display Picture"
+                class="w-1/2 h-1/2"
+              />
+              <audio
+                v-if="message.type === 'audio'"
+                :src="message.url"
+                controls
+              ></audio>
+              <video
+                v-if="message.type === 'video'"
+                :src="message.url"
+                controls
+                class="w-full h-auto"
+              ></video>
+
+              <span
+                v-if="message.beingTyped"
+                class="w-2.5 bg-gray-600 h-4 inline-block -mb-0.5 align-baseline animate-blink"
+              ></span>
+            </div>
+            <div
+              v-if="showTyping"
+              class="message assistant rounded-lg py-2.5 px-6 mb-4 bg-blue-100 border-blue-100 self-start"
+            >
+              <div class="type-indicator">
+                <span>.</span><span>.</span><span>.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fixed ml-60 inset-x-0 bottom-0 bg-gray-200">
+          <form
+            class="max-w-screen-lg m-auto w-full p-4 flex space-x-4 justify-center items-center"
+            @submit.prevent="sendMessage"
+          >
+            <input
+              id="message"
+              type="text"
+              autocomplete="off"
+              class="border rounded-md p-2 flex-1 border-gray-300"
+              v-model="newMessage"
+              placeholder="Your message..."
+            />
+            <button
+              class="bg-gray-800 text-white px-4 py-2 rounded-md"
+              :class="{'opacity-50' : waitingOnResponse}"
+            >
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const { createApp } = Vue;
+      var app = new Vue({
+        delimiters: ["[[", "]]"],
+        el: "#app",
+        data: {
+          licenseKey: "",
+          openaiKey: "",
+          newMessage: "",
+          showTyping: false,
+          waitingOnResponse: false,
+          messages: [],
+          chats: [
+            { name: "Chat 1" },
+            { name: "Chat 2" },
+            { name: "Chat 3" },
+            { name: "Chat 4" },
+          ],
+          mockTypingAfter: 1500,
+          mockResponseAfter: 3000,
+          mockOpeningMessage:
+            "Hello there. I am BuildFastGPT. Created by pwang_szn.",
+          mockResponsePrefix: "I am ready to serve",
+        },
+        mounted() {
+          //this.mockResponse(this.mockOpeningMessage);
+        },
+        methods: {
+          sendMessage() {
+            if (this.waitingOnResponse) return;
+            this.showTyping = true;
+
+            this.messages.push({
+              role: "user",
+              body: this.newMessage,
+              id: Date.now(),
+              type: "text",
+            });
+            //this.messages.push({ role: "assistant", url: 'https://i.ytimg.com/vi/zocutif0cQY/maxresdefault.jpg', type: 'image', id: Date.now() })
+            //this.messages.push({ role: "assistant", url: 'https://dl.dropboxusercontent.com/scl/fi/mw10wjgrtnaqdwmvhm38b/Prompts-Concept.wav?dl=0&rlkey=jh3t4banv86o5pal7dgghl4mg', type: 'audio', id: Date.now() })
+            //this.messages.push({ role: "assistant",url: 'https://www.dropbox.com/scl/fi/umce1m5xq2ycrc7na7i27/How-To-Create-a-Personal-Chatbot.mp4?dl=1&rlkey=082i3ggai33fctlm8txnhhef8', type: 'video', id: Date.now() })
+            this.waitingOnResponse = true;
+            axios({
+              method: "post",
+              url: "/api/generate_img",
+              data: {
+                res: this.newMessage,
+              },
+              headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+              },
+            })
+              .then((response) => {
+                console.log(response.data["img_url"]);
+                image_url = response.data["img_url"];
+                this.typeOutResponse(image_url, "image");
+                this.showTyping = false;
+                this.waitingOnResponse = false;
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+                this.showTyping = false;
+                this.waitingOnResponse = false;
+                this.typeOutResponse("SORRY THERE WAS AN ERROR", "text");
+              });
+
+            this.newMessage = "";
+            window.scrollTo(0, document.body.scrollHeight);
+          },
+
+          typeOutResponse(message, type = "text") {
+            if (type === "image") {
+              this.messages.push({
+                role: "assistant",
+                url: message,
+                type: type,
+                id: Date.now(),
+              });
+              this.waitingOnResponse = false;
+            } else {
+              let responseMessage = {
+                role: "assistant",
+                body: "",
+                beingTyped: true,
+                id: Date.now(),
+                type: type,
+              };
+              this.messages.push(responseMessage);
+              let i = 0;
+              let interval = setInterval(() => {
+                responseMessage.body += message.charAt(i);
+                i++;
+                if (i > message.length - 1) {
+                  this.waitingOnResponse = false;
+                  responseMessage.beingTyped = false;
+                  clearInterval(interval);
+                }
+              }, 30);
+            }
+          },
+        },
+      });
+    </script>
+
+    <script>
+      let element = document.querySelector("#personaltwitter");
+      if (element) {
+        element.classList.remove("bottom-0");
+        element.classList.add("top-0");
+      }
+    </script>
+  </body>
+</html>
